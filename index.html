@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Registration</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+  <!-- ── HERO ───────────────────────────────────────────── -->
+  <header class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <div class="event-badge" id="heroBadge">🏁 RunFest 2025</div>
+
+      <h1 class="hero-title">
+        <span id="heroTitle">Join the Race.</span>
+        <span class="hero-title-accent" id="heroTitleAccent">Make History.</span>
+      </h1>
+
+      <p class="hero-subtitle" id="heroSubtitle">
+        Register for the most electrifying campus marathon of the year.
+      </p>
+
+      <div class="hero-stats">
+        <div class="stat">
+          <span class="stat-val" id="heroStat1Value">—</span>
+          <span class="stat-lbl" id="heroStat1Label">Registered</span>
+        </div>
+        <div class="stat-sep"></div>
+        <div class="stat">
+          <span class="stat-val" id="heroStat2Value">5km</span>
+          <span class="stat-lbl" id="heroStat2Label">Distance</span>
+        </div>
+        <div class="stat-sep"></div>
+        <div class="stat">
+          <span class="stat-val" id="heroStat3Value">🏆</span>
+          <span class="stat-lbl" id="heroStat3Label">Prizes</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-image-bar" id="heroImageBar"></div>
+  </header>
+
+  <!-- Admin-uploaded banner images -->
+  <div class="banner-strip" id="bannerStrip" style="display:none;"></div>
+
+  <!-- ── FORM SECTION ────────────────────────────────────── -->
+  <main class="form-section">
+    <div class="form-container">
+
+      <div class="form-header">
+        <div class="form-icon" id="formIcon">✦</div>
+        <h2 class="form-heading" id="formHeading">Register Now</h2>
+        <p class="form-subheading" id="formSubheading">Fill in your details below — takes less than 2 minutes.</p>
+      </div>
+
+      <!-- Form closed state -->
+      <div class="form-closed-msg" id="formClosedMsg"></div>
+
+      <!-- Success -->
+      <div class="success-box" id="successBox">
+        <div class="success-confetti">🎉</div>
+        <h3 class="success-title" id="successTitle">You're In!</h3>
+        <p class="success-message" id="successMessage">Welcome!</p>
+        <div class="runner-id-pill">
+          <span id="successIdLabel">Your Runner ID:</span>
+          <strong id="successId">—</strong>
+        </div>
+        <p class="success-note" id="successNote">Save your Runner ID — you'll need it on race day.</p>
+        <button class="btn-ghost" onclick="resetForm()">Register Another Person</button>
+      </div>
+
+      <!-- Error -->
+      <div class="error-box" id="errorBox"></div>
+
+      <form id="registrationForm" novalidate>
+        <!-- All fields injected here by script.js -->
+        <div class="form-grid" id="formFieldsContainer"></div>
+
+        <button type="submit" class="btn-submit" id="submitBtn">
+          <span class="btn-submit-inner">
+            <span id="submitBtnText">Register Now</span>
+            <span class="btn-arrow">→</span>
+          </span>
+        </button>
+      </form>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p id="footerText">RunFest 2025 · Organized by the Students' Union</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
