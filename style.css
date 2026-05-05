@@ -473,14 +473,12 @@ select {
 
 /* ── FOOTER ──────────────────────────────────────────────── */
 .site-footer {
-  text-align: center;
-  padding: 28px;
+  padding: 24px 40px;
   color: var(--ink-muted);
-  font-size: .8rem;
+  font-size: .82rem;
   border-top: 1px solid var(--line);
+  background: var(--white);
 }
-.site-footer a { color: var(--g500); text-decoration: none; font-weight: 600; }
-.site-footer a:hover { text-decoration: underline; }
 
 /* ── ANIMATIONS ──────────────────────────────────────────── */
 @keyframes fadeUp {
@@ -510,25 +508,52 @@ select {
   .hero-title { font-size: clamp(2.4rem, 9vw, 3.5rem); }
 }
 
-/* ── SETTINGS TRIGGER (footer dot) ──────────────────────── */
-#settingsTrigger {
-  display: inline-block;
-  cursor: default;
-  color: var(--ink-muted);
-  padding: 8px 14px;
-  font-size: .9rem;
-  user-select: none;
-  -webkit-user-select: none;
-  /* Looks like plain punctuation — no pointer cursor, no underline */
+/* ── FOOTER ──────────────────────────────────────────────── */
+.site-footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
-/* ── ADMIN LOGIN MODAL ───────────────────────────────────── */
+.site-footer-copy { margin: 0; }
+
+.site-footer-links { display: flex; align-items: center; gap: 18px; }
+
+.footer-admin-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1.5px solid var(--line);
+  color: var(--ink-muted);
+  font-family: 'Sora', sans-serif;
+  font-size: .78rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: var(--t);
+  text-decoration: none;
+}
+.footer-admin-link:hover {
+  background: var(--g800);
+  border-color: var(--g800);
+  color: var(--white);
+  transform: translateY(-1px);
+  box-shadow: var(--sh-sm);
+}
+
+/* ── ADMIN LOGIN MODAL — OVERLAY ─────────────────────────── */
 .admin-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(6, 20, 16, 0.78);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(6, 20, 16, 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   z-index: 9000;
   display: flex;
   align-items: center;
@@ -536,7 +561,7 @@ select {
   padding: 20px;
   opacity: 0;
   pointer-events: none;
-  transition: opacity .25s var(--ease);
+  transition: opacity .28s var(--ease);
 }
 
 .admin-modal-overlay.open {
@@ -544,17 +569,18 @@ select {
   pointer-events: all;
 }
 
+/* ── CARD ────────────────────────────────────────────────── */
 .admin-modal-card {
   background: var(--white);
   border-radius: var(--r-xl);
-  padding: 48px 40px 40px;
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
   position: relative;
-  box-shadow: var(--sh-xl);
-  transform: translateY(18px) scale(.97);
-  transition: transform .3s var(--spring), opacity .25s var(--ease);
+  box-shadow: 0 32px 80px rgba(6,20,16,.4), 0 0 0 1px rgba(255,255,255,.06);
+  transform: translateY(22px) scale(.96);
   opacity: 0;
+  transition: transform .35s var(--spring), opacity .28s var(--ease);
+  overflow: hidden;
 }
 
 .admin-modal-overlay.open .admin-modal-card {
@@ -562,66 +588,126 @@ select {
   opacity: 1;
 }
 
+/* ── CLOSE BUTTON ────────────────────────────────────────── */
 .admin-modal-close {
   position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 30px;
-  height: 30px;
-  background: var(--off);
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  background: rgba(0,0,0,.06);
   border: none;
   border-radius: 50%;
   cursor: pointer;
-  font-size: .8rem;
-  color: var(--ink-muted);
+  color: var(--ink-soft);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: var(--t);
+  z-index: 1;
 }
-.admin-modal-close:hover { background: var(--red); color: var(--white); }
+.admin-modal-close:hover {
+  background: var(--red);
+  color: var(--white);
+  transform: scale(1.05);
+}
 
-.admin-modal-icon {
-  width: 52px;
-  height: 52px;
-  background: linear-gradient(135deg, var(--g800), var(--g600));
-  border-radius: 14px;
+/* ── HEADER BAND ─────────────────────────────────────────── */
+.admin-modal-header {
+  background: linear-gradient(145deg, var(--g900) 0%, var(--g800) 60%, #0f2a1a 100%);
+  padding: 40px 36px 32px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle grid texture */
+.admin-modal-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* Bottom glow line */
+.admin-modal-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--g400), var(--gold-light), var(--g400), transparent);
+}
+
+.admin-modal-icon-wrap {
+  position: relative;
+  width: 58px;
+  height: 58px;
+  background: linear-gradient(145deg, var(--g700), var(--g500));
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.4rem;
-  color: var(--white);
-  margin: 0 auto 20px;
-  box-shadow: 0 6px 20px rgba(6,20,16,.25);
+  margin: 0 auto 18px;
+  box-shadow: 0 8px 24px rgba(34,96,56,.4), inset 0 1px 0 rgba(255,255,255,.12);
+}
+
+.admin-modal-icon-wrap.success {
+  background: linear-gradient(145deg, #166534, #16a34a);
+  box-shadow: 0 8px 24px rgba(22,163,74,.4), inset 0 1px 0 rgba(255,255,255,.12);
 }
 
 .admin-modal-title {
+  position: relative;
   font-family: 'Playfair Display', serif;
-  font-size: 1.6rem;
-  text-align: center;
-  color: var(--ink);
-  margin-bottom: 4px;
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 6px;
+  letter-spacing: -.01em;
 }
 
 .admin-modal-sub {
-  text-align: center;
-  color: var(--ink-muted);
+  position: relative;
+  color: rgba(255,255,255,.52);
   font-size: .84rem;
-  margin-bottom: 28px;
+  font-weight: 300;
+  line-height: 1.55;
 }
 
-.admin-modal-fields {
+/* ── BODY ────────────────────────────────────────────────── */
+.admin-modal-body {
+  padding: 30px 36px 36px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  margin-bottom: 6px;
+  gap: 18px;
 }
 
-.admin-modal-fields .field-group label {
-  display: block;
-  margin-bottom: 7px;
+.admin-modal-body .field-group { gap: 7px; }
+.admin-modal-body label { display: block; }
+
+/* Input with icon */
+.input-icon-wrap {
+  position: relative;
 }
 
+.input-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--ink-muted);
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.input-icon-wrap input {
+  padding-left: 40px;
+}
+
+/* Password eye toggle */
 .m-pass-eye {
   position: absolute;
   right: 12px;
@@ -631,89 +717,135 @@ select {
   border: none;
   cursor: pointer;
   color: var(--ink-muted);
-  padding: 4px;
+  padding: 5px;
   display: flex;
   align-items: center;
-  transition: color .2s;
+  border-radius: var(--r-sm);
+  transition: color .2s, background .2s;
 }
-.m-pass-eye:hover { color: var(--g500); }
-.admin-modal-fields input[type="password"],
-.admin-modal-fields input[type="text"] {
-  padding-right: 42px;
-}
+.m-pass-eye:hover { color: var(--g500); background: var(--g50); }
+.input-icon-wrap input[type="password"],
+.input-icon-wrap input[type="text"] { padding-right: 42px; }
 
-.admin-modal-error {
-  color: var(--red);
+/* Feedback messages */
+.admin-modal-feedback {
+  min-height: 20px;
   font-size: .8rem;
   font-weight: 600;
-  min-height: 18px;
-  margin: 8px 0 2px;
+  color: var(--red);
   text-align: center;
+  padding: 6px 10px;
+  border-radius: var(--r-sm);
+  background: transparent;
+  transition: background .2s;
+}
+.admin-modal-feedback:not(:empty) {
+  background: var(--red-pale);
+  border: 1px solid #fca5a5;
 }
 
 .admin-modal-lockout {
-  color: var(--amber);
-  font-size: .78rem;
+  min-height: 20px;
+  font-size: .8rem;
   font-weight: 600;
-  min-height: 18px;
+  color: var(--amber);
   text-align: center;
-  margin-bottom: 4px;
+  margin-top: -10px;
 }
 
+/* ── SIGN IN BUTTON ──────────────────────────────────────── */
 .admin-modal-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   width: 100%;
-  padding: 14px 24px;
-  margin-top: 18px;
-  background: linear-gradient(135deg, var(--g700), var(--g500));
+  padding: 15px 24px;
+  background: linear-gradient(135deg, var(--g700) 0%, var(--g500) 100%);
   color: var(--white);
   border: none;
   border-radius: var(--r-sm);
   font-family: 'Sora', sans-serif;
-  font-size: .92rem;
+  font-size: .95rem;
   font-weight: 600;
   cursor: pointer;
   transition: var(--t);
+  letter-spacing: .01em;
   position: relative;
   overflow: hidden;
 }
+
+.admin-modal-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--g600), var(--g400));
+  opacity: 0;
+  transition: opacity .22s;
+}
+
+.admin-modal-btn:hover::before { opacity: 1; }
 .admin-modal-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 32px rgba(34,96,56,.35);
+  box-shadow: 0 12px 36px rgba(34,96,56,.38);
 }
 .admin-modal-btn:active { transform: translateY(0); }
-.admin-modal-btn:disabled { opacity: .6; cursor: default; transform: none; }
-
-.admin-modal-btn-arrow {
-  font-size: 1rem;
-  transition: transform .2s var(--spring);
+.admin-modal-btn:disabled {
+  opacity: .65;
+  cursor: not-allowed;
+  transform: none;
 }
-.admin-modal-btn:hover .admin-modal-btn-arrow { transform: translateX(4px); }
+.admin-modal-btn span, .admin-modal-btn svg { position: relative; z-index: 1; }
+.admin-modal-btn:hover svg:last-child { transform: translateX(3px); }
+.admin-modal-btn svg { transition: transform .2s var(--spring); }
 
-.admin-modal-warning {
-  font-size: .72rem;
-  color: var(--ink-muted);
-  text-align: center;
-  margin-top: 18px;
-  line-height: 1.5;
-  padding: 0 8px;
-}
+/* Spinner animation */
+@keyframes spinLoop { to { transform: rotate(360deg); } }
+.spin { animation: spinLoop .8s linear infinite; }
 
+/* ── SIGN OUT BUTTON ─────────────────────────────────────── */
 .admin-modal-signout {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   width: 100%;
-  margin-top: 14px;
-  padding: 10px;
+  padding: 11px;
   background: none;
   border: 1.5px solid var(--line);
   border-radius: var(--r-sm);
   color: var(--ink-muted);
   font-family: 'Sora', sans-serif;
-  font-size: .82rem;
+  font-size: .84rem;
+  font-weight: 500;
   cursor: pointer;
   transition: var(--t);
 }
-.admin-modal-signout:hover { background: var(--off); color: var(--ink); }
+.admin-modal-signout:hover {
+  background: var(--red-pale);
+  border-color: #fca5a5;
+  color: var(--red);
+}
+
+/* ── SECURITY NOTE ───────────────────────────────────────── */
+.admin-modal-footer-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: .72rem;
+  color: var(--ink-muted);
+  line-height: 1.55;
+  padding: 12px 14px;
+  background: var(--off);
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line);
+  margin-top: -4px;
+}
+.admin-modal-footer-note svg { flex-shrink: 0; margin-top: 1px; color: var(--ink-muted); }
+
+/* ── MOBILE ADJUSTMENTS ──────────────────────────────────── */
+@media (max-width: 480px) {
+  .admin-modal-header { padding: 32px 24px 28px; }
+  .admin-modal-body   { padding: 24px 24px 28px; }
+  .site-footer-inner  { flex-direction: column; align-items: center; text-align: center; }
+}

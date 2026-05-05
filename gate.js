@@ -1,45 +1,29 @@
 /**
  * RunFest — gate.js
- * ─────────────────────────────────────────────────────────────────
- * SECRET ADMIN GATE embedded in the public registration page.
- *
- * HOW TO ACCESS:
- *   Triple-click the "·" separator dot in the footer → login modal appears.
- *   On mobile: long-press (800ms) the same dot.
- *
- * The dot looks like decorative punctuation. No tooltip, no label.
- * No link to admin.html exists anywhere in the public HTML.
- *
- * SECURITY:
- *   • SHA-256 hashed passwords (Web Crypto API)
- *   • 3 attempts → 15-minute lockout
- *   • Session stored in sessionStorage (cleared on tab close)
- *   • Every attempt logged with timestamp
- *   • 600–900ms artificial delay to resist brute-force
- * ─────────────────────────────────────────────────────────────────
+ * Admin login gate embedded in the public page.
+ * Triggered by the visible "Admin" link in the footer.
+ * Secured with SHA-256 hashing, rate limiting, session tokens.
  */
-
 (function () {
   'use strict';
 
-  /* ── CONFIG ──────────────────────────────────────────────── */
-  const CREDS_KEY    = 'rf_admin_creds';
-  const SESSION_KEY  = 'rf_admin_session';
-  const LOG_KEY      = 'rf_access_log';
-  const LOCK_KEY     = 'rf_login_lock';
-  const SESSION_TTL  = 2 * 60 * 60 * 1000;  // 2 h
-  const MAX_ATTEMPTS = 3;
-  const LOCKOUT_MS   = 15 * 60 * 1000;      // 15 min
+  const CREDS_KEY   = 'rf_admin_creds';
+  const SESSION_KEY = 'rf_admin_session';
+  const LOG_KEY     = 'rf_access_log';
+  const LOCK_KEY    = 'rf_login_lock';
+  const SESSION_TTL = 2 * 60 * 60 * 1000; // 2 hours
+  const MAX_TRIES   = 3;
+  const LOCKOUT_MS  = 15 * 60 * 1000;     // 15 minutes
   const DEFAULT_USER = 'admin';
   const DEFAULT_PASS = 'RunFest@2025!';
 
-  /* ── SHA-256 ─────────────────────────────────────────────── */
+  /* ── SHA-256 ── */
   async function sha256(str) {
     const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
   }
 
-  /* ── SEED DEFAULT CREDS ──────────────────────────────────── */
+  /* ── Seed default credentials on first run ── */
   async function seedCreds() {
     if (!localStorage.getItem(CREDS_KEY)) {
       const hash = await sha256(DEFAULT_PASS);
@@ -47,7 +31,7 @@
     }
   }
 
-  /* ── SESSION ─────────────────────────────────────────────── */
+  /* ── Session ── */
   function getSession() {
     try {
       const raw = sessionStorage.getItem(SESSION_KEY);
@@ -59,72 +43,60 @@
   }
 
   function createSession(username) {
-    const token   = Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2, '0')).join('');
+    const token   = Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b=>b.toString(16).padStart(2,'0')).join('');
     const expires = Date.now() + SESSION_TTL;
     sessionStorage.setItem(SESSION_KEY, JSON.stringify({ token, username, expires }));
     return { token, username, expires };
   }
 
-  function destroySession() {
-    sessionStorage.removeItem(SESSION_KEY);
-  }
+  function destroySession() { sessionStorage.removeItem(SESSION_KEY); }
 
-  /* ── RATE LIMITING ───────────────────────────────────────── */
+  /* ── Rate limiting ── */
   function getLock() {
-    try { return JSON.parse(localStorage.getItem(LOCK_KEY)) || { attempts: 0, lockedUntil: 0 }; }
-    catch { return { attempts: 0, lockedUntil: 0 }; }
+    try { return JSON.parse(localStorage.getItem(LOCK_KEY)) || { attempts:0, lockedUntil:0 }; }
+    catch { return { attempts:0, lockedUntil:0 }; }
   }
+  function saveLock(s)     { localStorage.setItem(LOCK_KEY, JSON.stringify(s)); }
+  function isLocked()      { return getLock().lockedUntil > Date.now(); }
+  function minsLeft()      { return Math.ceil((getLock().lockedUntil - Date.now()) / 60000); }
 
-  function saveLock(s) { localStorage.setItem(LOCK_KEY, JSON.stringify(s)); }
-
-  function isLocked()        { return getLock().lockedUntil > Date.now(); }
-  function lockoutMinsLeft() { return Math.ceil((getLock().lockedUntil - Date.now()) / 60000); }
-
-  function recordAttempt(success) {
-    if (success) { saveLock({ attempts: 0, lockedUntil: 0 }); return; }
+  function recordAttempt(ok) {
+    if (ok) { saveLock({ attempts:0, lockedUntil:0 }); return; }
     const s = getLock();
     s.attempts++;
-    if (s.attempts >= MAX_ATTEMPTS) { s.lockedUntil = Date.now() + LOCKOUT_MS; s.attempts = 0; }
+    if (s.attempts >= MAX_TRIES) { s.lockedUntil = Date.now() + LOCKOUT_MS; s.attempts = 0; }
     saveLock(s);
   }
 
-  /* ── ACCESS LOG ──────────────────────────────────────────── */
+  /* ── Access log ── */
   function logAccess(user, ok, reason) {
     const log = JSON.parse(localStorage.getItem(LOG_KEY) || '[]');
-    log.unshift({ ts: new Date().toISOString(), username: user, success: ok, reason: reason || '' });
-    localStorage.setItem(LOG_KEY, JSON.stringify(log.slice(0, 50)));
+    log.unshift({ ts: new Date().toISOString(), username: user, success: ok, reason: reason||'' });
+    localStorage.setItem(LOG_KEY, JSON.stringify(log.slice(0,50)));
   }
 
-  /* ── DOM HELPERS ─────────────────────────────────────────── */
+  /* ── DOM helpers ── */
   const $  = id => document.getElementById(id);
-  const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const esc = s  => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-  function showModal()   {
+  /* ── Modal open/close ── */
+  window.openAdminModal = function () {
     const m = $('adminLoginModal');
     if (!m) return;
     m.classList.add('open');
-    m.setAttribute('aria-hidden', 'false');
-    // If already authed, go straight to auth view
-    const s = getSession();
-    if (s) { showAuthView(s.username); }
-    else   { showLoginView(); setTimeout(() => $('m-user')?.focus(), 80); }
-  }
+    m.setAttribute('aria-hidden','false');
+    const session = getSession();
+    if (session) { showAuthView(session.username); }
+    else         { showLoginView(); setTimeout(() => $('m-user')?.focus(), 100); }
+  };
 
-  function hideModal() {
+  window.closeAdminModal = function () {
     const m = $('adminLoginModal');
     if (!m) return;
     m.classList.remove('open');
-    m.setAttribute('aria-hidden', 'true');
-    clearFields();
-  }
-
-  function clearFields() {
-    const u = $('m-user'), p = $('m-pass'), e = $('m-error'), l = $('m-lockout');
-    if (u) u.value = '';
-    if (p) p.value = '';
-    if (e) e.textContent = '';
-    if (l) l.textContent = '';
-  }
+    m.setAttribute('aria-hidden','true');
+    clearFeedback();
+  };
 
   function showLoginView() {
     $('adminLoginView').style.display = '';
@@ -132,60 +104,71 @@
   }
 
   function showAuthView(username) {
-    $('adminLoginView').style.display  = 'none';
-    $('adminAuthView').style.display   = '';
+    $('adminLoginView').style.display = 'none';
+    $('adminAuthView').style.display  = '';
     const w = $('m-welcomeMsg');
-    if (w) w.textContent = `Welcome back, ${esc(username)}.`;
-    // Pass session token to dashboard via sessionStorage (already stored)
+    if (w) w.textContent = `Welcome back, ${esc(username)}. You're signed in.`;
   }
 
-  /* ── PASSWORD TOGGLE ─────────────────────────────────────── */
+  function clearFeedback() {
+    const e = $('m-error'), l = $('m-lockout');
+    if (e) e.textContent = '';
+    if (l) l.textContent = '';
+  }
+
+  /* ── Password toggle ── */
   window.mTogglePass = function () {
     const p = $('m-pass');
     if (!p) return;
-    p.type = p.type === 'password' ? 'text' : 'password';
-    const icon = $('eyeIcon');
-    if (icon) icon.style.opacity = p.type === 'text' ? '1' : '0.5';
+    const show = p.type === 'password';
+    p.type = show ? 'text' : 'password';
+    const open   = $('eyeIconOpen');
+    const closed = $('eyeIconClosed');
+    if (open)   open.style.display   = show ? 'none' : '';
+    if (closed) closed.style.display = show ? '' : 'none';
   };
 
-  /* ── SIGN OUT ────────────────────────────────────────────── */
+  /* ── Sign out ── */
   window.mSignOut = function () {
     destroySession();
     showLoginView();
-    clearFields();
+    clearFeedback();
+    if ($('m-user')) $('m-user').value = '';
+    if ($('m-pass')) $('m-pass').value = '';
+    setTimeout(() => $('m-user')?.focus(), 80);
   };
 
-  /* ── LOGIN ───────────────────────────────────────────────── */
+  /* ── Login ── */
   window.mDoLogin = async function () {
     const errEl  = $('m-error');
     const lockEl = $('m-lockout');
     const btn    = $('m-loginBtn');
     const btnTxt = $('m-btnText');
-
+    const arrow  = $('m-btnArrow');
+    const spin   = $('m-btnSpinner');
     if (!errEl || !btn) return;
-    errEl.textContent  = '';
-    lockEl.textContent = '';
 
-    /* Lockout check */
+    clearFeedback();
+
     if (isLocked()) {
-      lockEl.textContent = `Too many failed attempts. Try again in ${lockoutMinsLeft()} minute(s).`;
+      lockEl.textContent = `Account temporarily locked. Try again in ${minsLeft()} minute(s).`;
       return;
     }
 
     const username = ($('m-user')?.value || '').trim();
     const password =  $('m-pass')?.value || '';
 
-    if (!username || !password) {
-      errEl.textContent = 'Please enter your username and password.';
-      return;
-    }
+    if (!username) { errEl.textContent = 'Please enter your username.'; $('m-user')?.focus(); return; }
+    if (!password) { errEl.textContent = 'Please enter your password.'; $('m-pass')?.focus(); return; }
 
     /* Loading state */
-    btn.disabled    = true;
+    btn.disabled = true;
     btnTxt.textContent = 'Verifying…';
+    if (arrow) arrow.style.display = 'none';
+    if (spin)  spin.style.display  = '';
 
-    /* Artificial delay (600–900ms) */
-    await new Promise(r => setTimeout(r, 600 + Math.random() * 300));
+    /* Delay to prevent timing attacks */
+    await new Promise(r => setTimeout(r, 650 + Math.random() * 350));
 
     try {
       const creds  = JSON.parse(localStorage.getItem(CREDS_KEY));
@@ -194,19 +177,19 @@
       if (username === creds.user && inHash === creds.hash) {
         recordAttempt(true);
         logAccess(username, true);
-        const session = createSession(username);
+        createSession(username);
         showAuthView(username);
       } else {
         recordAttempt(false);
         logAccess(username, false, 'Wrong credentials');
-        const lock      = getLock();
-        const remaining = MAX_ATTEMPTS - lock.attempts;
+        const lock = getLock();
         errEl.textContent = 'Incorrect username or password.';
         if (lock.lockedUntil > Date.now()) {
-          lockEl.textContent = `Account locked for ${lockoutMinsLeft()} minute(s).`;
           errEl.textContent  = '';
-        } else if (remaining > 0) {
-          lockEl.textContent = `${remaining} attempt(s) left before lockout.`;
+          lockEl.textContent = `Too many attempts. Account locked for ${minsLeft()} minute(s).`;
+        } else {
+          const left = MAX_TRIES - lock.attempts;
+          if (left > 0) lockEl.textContent = `${left} attempt(s) remaining before lockout.`;
         }
         $('m-pass').value = '';
         $('m-pass')?.focus();
@@ -215,60 +198,31 @@
       errEl.textContent = 'An error occurred. Please try again.';
     }
 
-    btn.disabled    = false;
-    btnTxt.textContent = 'Sign In';
+    btn.disabled = false;
+    btnTxt.textContent = 'Sign In to Dashboard';
+    if (arrow) arrow.style.display = '';
+    if (spin)  spin.style.display  = 'none';
   };
 
-  /* ── SECRET TRIGGER LOGIC ────────────────────────────────── */
-  function initTrigger() {
-    const trigger = $('settingsTrigger');
-    if (!trigger) return;
-
-    /* Desktop: triple-click */
-    let clickCount = 0;
-    let clickTimer = null;
-
-    trigger.addEventListener('click', () => {
-      clickCount++;
-      clearTimeout(clickTimer);
-      clickTimer = setTimeout(() => { clickCount = 0; }, 600);
-      if (clickCount >= 3) {
-        clickCount = 0;
-        clearTimeout(clickTimer);
-        showModal();
-      }
-    });
-
-    /* Mobile: long-press (800ms) */
-    let pressTimer = null;
-    trigger.addEventListener('touchstart', () => {
-      pressTimer = setTimeout(showModal, 800);
-    }, { passive: true });
-    trigger.addEventListener('touchend',   () => clearTimeout(pressTimer));
-    trigger.addEventListener('touchmove',  () => clearTimeout(pressTimer));
-
-    /* Close on overlay click */
+  /* ── Event bindings ── */
+  function bindEvents() {
+    /* Close on backdrop click */
     $('adminLoginModal')?.addEventListener('click', e => {
-      if (e.target === $('adminLoginModal')) hideModal();
+      if (e.target === $('adminLoginModal')) window.closeAdminModal();
     });
 
-    /* Close button */
-    $('adminModalClose')?.addEventListener('click', hideModal);
-
-    /* Enter key inside login modal */
+    /* Keyboard */
     $('m-pass')?.addEventListener('keydown', e => { if (e.key === 'Enter') window.mDoLogin(); });
     $('m-user')?.addEventListener('keydown', e => { if (e.key === 'Enter') $('m-pass')?.focus(); });
-
-    /* Escape key */
     document.addEventListener('keydown', e => {
-      if (e.key === 'Escape') hideModal();
+      if (e.key === 'Escape') window.closeAdminModal();
     });
   }
 
-  /* ── INIT ────────────────────────────────────────────────── */
+  /* ── Init ── */
   async function init() {
     await seedCreds();
-    initTrigger();
+    bindEvents();
   }
 
   if (document.readyState === 'loading') {
@@ -276,5 +230,4 @@
   } else {
     init();
   }
-
 })();
