@@ -94,8 +94,66 @@
 
   <footer class="site-footer">
     <p id="footerText">RunFest 2025 · Organized by the Students' Union</p>
+    <!-- Hidden settings trigger — triple-click to reveal -->
+    <span id="settingsTrigger" title="" aria-hidden="true">·</span>
   </footer>
 
+  <!-- ── ADMIN LOGIN MODAL (hidden, triggered by secret interaction) ── -->
+  <div id="adminLoginModal" class="admin-modal-overlay" aria-hidden="true">
+    <div class="admin-modal-card" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
+
+      <button class="admin-modal-close" id="adminModalClose" aria-label="Close">✕</button>
+
+      <!-- Locked state (default) -->
+      <div id="adminLoginView">
+        <div class="admin-modal-icon">⚙</div>
+        <h3 class="admin-modal-title" id="adminModalTitle">System Access</h3>
+        <p class="admin-modal-sub">Authorized personnel only</p>
+
+        <div class="admin-modal-fields">
+          <div class="field-group">
+            <label for="m-user">Username</label>
+            <input type="text" id="m-user" placeholder="Username"
+                   autocomplete="off" autocapitalize="off" spellcheck="false"/>
+          </div>
+          <div class="field-group" style="position:relative">
+            <label for="m-pass">Password</label>
+            <input type="password" id="m-pass" placeholder="Password"/>
+            <button type="button" class="m-pass-eye" id="mPassEye" onclick="mTogglePass()" tabindex="-1" aria-label="Show/hide password">
+              <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="admin-modal-error" id="m-error"></div>
+        <div class="admin-modal-lockout" id="m-lockout"></div>
+
+        <button class="admin-modal-btn" id="m-loginBtn" onclick="mDoLogin()">
+          <span id="m-btnText">Sign In</span>
+          <span class="admin-modal-btn-arrow">→</span>
+        </button>
+
+        <p class="admin-modal-warning">
+          🔒 Unauthorized access attempts are logged and tracked.
+        </p>
+      </div>
+
+      <!-- Authenticated state -->
+      <div id="adminAuthView" style="display:none;">
+        <div class="admin-modal-icon" style="background:linear-gradient(135deg,#1a4d2e,#2d7a49);">✓</div>
+        <h3 class="admin-modal-title">Access Granted</h3>
+        <p class="admin-modal-sub" id="m-welcomeMsg">Welcome back, Admin.</p>
+        <a id="m-dashboardLink" href="admin.html" class="admin-modal-btn" style="display:flex;text-decoration:none;margin-top:24px;">
+          <span>Open Control Panel</span>
+          <span class="admin-modal-btn-arrow">→</span>
+        </a>
+        <button class="admin-modal-signout" onclick="mSignOut()">Sign out</button>
+      </div>
+
+    </div>
+  </div>
+
   <script src="script.js"></script>
+  <script src="gate.js"></script>
 </body>
 </html>
